@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cliente API Rest</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
+    <script>
+        JSON.parse = JSON.parse || function(str){
+            if(str==="")
+                str = '""';
+            eval("var p="+ str + ";");
+            return p;
+        }
+        
+        $(document).ready(function(){
+            function getProductos(){
+                $.ajax({
+                    url: "https://apirestfulslim-ingbeltran.c9users.io/api.php/productos",
+                    type: "get",
+                    success: function (response){
+                        $.each(JSON.parse(response), function(i, index){
+                            if(index.id.length){
+                                $(".table").append("<tr><td>"+  index.id +"</td>"+
+                                                        "<td>"+  index.name +"</td>"+
+                                                        "<td>"+  index.description +"</td>"+
+                                                        "<td>"+  index.price +"</td>"+
+                                                        "<td><span class='delete btn btn-danger' data-producto='"+index.id+"'>Borrar</span></td>"+
+                                                        "<td><span class='update btn btn-warning' data-producto='"+index.id+"'>Editar</span></td>"+
+                                                    "</tr>");
+                            }
+                        });
+                        
+                        //BORRAR
+                        
+                        $(".delete").unbind("click").click(function(){
+                            $.ajax({
+                                url: "https://apirestfulslim-ingbeltran.c9users.io/api.php/productos/"+$(this).data("producto"),
+                                type: "DELETE",
+                                success: function(response){
+                                    $("table").html("tr><td>ID</td><td>NOMBRE</td><td>DESCRIPCION</td><td>PRECIO</td><td>ELIMINAR</td><td>EDITAR</td></tr>");
+                                    getProductos();
+                                    $("#form").attr("data-producto","0");
+                                    $("#form")[0].reset();
+                                }
+                            });
+                        });
+                        
+                    }
+                });
+            }
+            getProductos();
+            
+            //GUARDAR PRODUCTOS
+            if($("#form").data("producto")===0){
+                $("#form").submit(function(e){
+                    e.preventDefault();
+                    
+                    $.ajax({
+                        url: "https://apirestfulslim-ingbeltran.c9users.io/api.php/productos",
+                        type: "post",
+                        data: {name: $("#name_form").val() , description: $("#description_form").val() , price: $("#price_form").val()},
+                        success: function (response){
+                            $("table").html("tr><td>ID</td><td>NOMBRE</td><td>DESCRIPCION</td><td>PRECIO</td><td>ELIMINAR</td><td>EDITAR</td></tr>");
+                            getProductos();
+                            $("#form")[0].reset();
+                        }
+                    });
+                    
+                    return false;
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <h3>Cliente WEB API REST Slim</h3>
+    <div class="col-lg-7">
+        <table class="table">
+            <tr>
+                <td>ID</td>
+                <td>NOMBRE</td>
+                <td>DESCRIPCION</td>
+                <td>PRECIO</td>
+                <td>ELIMINAR</td>
+                <td>EDITAR</td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-lg-5 pull-right">
+        <form id="form" action="https://apirestfulslim-ingbeltran.c9users.io/api.php/productos" method="post" data-producto="0">
+            Nombre:
+            <input type="text" id="name_form" name="name" class="form-control"/>
+            
+            Descripcion:
+            <input type="textarea" id="description_form" name="description" class="form-control"/>
+            
+            Precio:
+            <input type="text" id="price_form" name="price" class="form-control"/>
+            
+            <input type="submit" value="Enviar"/>
+        </form>
+    </div>
+</body>
+</html>
